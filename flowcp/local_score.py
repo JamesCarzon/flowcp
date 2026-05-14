@@ -17,10 +17,13 @@ def _avg_pool_to(u: jnp.ndarray, out_hw=(8, 8)) -> jnp.ndarray:
 
 def default_x_features(x: jnp.ndarray, out_hw=(8, 8), eps=1e-6) -> jnp.ndarray:
   """
-  x: (H,W,Cx) -> feature vector (d,)
-  Features = [per-channel mean, per-channel std, pooled grid values]
+  x: (H,W,Cx) or (d,) -> feature vector
+  For 3-D inputs: [per-channel mean, per-channel std, pooled grid values].
+  For 1-D inputs: returns the vector itself (already a feature vector).
   """
   x = x.astype(jnp.float32)
+  if x.ndim == 1:
+    return x
   mu = jnp.mean(x, axis=(0, 1))
   sd = jnp.std(x, axis=(0, 1)) + eps
   xp = _avg_pool_to(x, out_hw=out_hw).reshape(-1)
